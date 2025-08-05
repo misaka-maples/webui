@@ -1,16 +1,10 @@
-
----
-
-```markdown
 # Flask 多摄像头与夹爪控制系统
 
 本项目是一个基于 **Flask** 的 Web 控制界面，主要用于多摄像头视频流展示、夹爪控制、串口管理以及任务流程管理。前端采用 HTML/JS，后端通过 Flask 提供 RESTful API，支持多线程任务与硬件交互。
 
----
+***
 
 ## 📁 项目目录结构
-
-```
 
 ├── app.py                  # Flask 主应用入口
 ├── backend/                # 后端核心逻辑与硬件控制
@@ -24,60 +18,42 @@
 ├── pyorbbecsdk/            # 相关依赖库
 └── ...
 
-````
-
----
-
 ## 📦 安装依赖
 
 建议使用 **Python 3.8+**
 
 基础依赖（最小可运行）：
 
-```bash
 pip install flask
-````
 
 如需串口、摄像头等功能，请根据实际硬件环境安装额外依赖，例如：
 
-```bash
-pip install pyserial opencv-python
-```
-
----
+pip install pyserial opencv-python&#x9;
 
 ## 🚀 启动方式
 
 在项目根目录下运行：
 
-```bash
 python app.py
-```
 
-默认启动地址：
-
-```
-http://127.0.0.1:5000/
-```
-
----
+默认启动地址：<http://127.0.0.1:5000/>
 
 ## 🔧 主要功能
 
-* 🎥 **多摄像头视频流**
+*   🎥 **多摄像头视频流**
 
-  * 支持多路摄像头 MJPEG 实时预览
-* 🤖 **夹爪控制**
+    *   支持多路摄像头 MJPEG 实时预览
+*   🤖 **夹爪控制**
 
-  * 支持多夹爪独立控制，串口控制开合
-* 🔌 **串口管理**
+    *   支持多夹爪独立控制，串口控制开合
+*   🔌 **串口管理**
 
-  * 串口端口枚举、连接、重连等操作
-* 📋 **任务流程管理**
+    *   串口端口枚举、连接、重连等操作
+*   📋 **任务流程管理**
 
-  * 启动/停止任务，自动采集数据
+    *   启动/停止任务，自动采集数据
 
----
+***
 
 ## 🌐 前端交互接口
 
@@ -85,39 +61,34 @@ http://127.0.0.1:5000/
 
 ### 📦 任务与摄像头控制
 
-```
-GET /action/<action>
-```
+GET /action/&lt;action&gt;
 
-### 🔌 串口管理
+🔌 串口管理
 
-```
 GET /serial/ports         # 枚举串口
 POST /serial/open         # 打开串口
 POST /serial/reconnect    # 重连串口
-```
 
-### 🤖 夹爪控制
+🤖 夹爪控制
 
-```
 POST /gripper/start
 POST /gripper/stop
-POST /gripper/<gripper_id>  # 控制指定夹爪开合
-```
+POST /gripper/\<gripper\_id>  # 控制指定夹爪开合
 
----
+***
 
 ## 🤝 贡献与反馈
 
 欢迎反馈问题与贡献代码！
 
-* 提交 [Issue](https://github.com/your-repo/issues)
-* 发起 [Pull Request](https://github.com/your-repo/pulls)
+*   提交 Issue 或建议
+*   提交 Pull Request 合并代码
 
----
+***
 
 ## 📄 License
 
-本项目遵循 [MIT License](LICENSE) 开源协议。
+本项目遵循 MIT License 开源协议。
 
-```
+***
+
