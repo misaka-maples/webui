@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Web UI Video Dashboard</title>
+    <link href="static/style.css" rel="stylesheet">
+    <style>
+        .video-box {
+            background-color: #000;
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border: 1px solid #ccc;
+        }
+
+        .video-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body class="container py-4">
+
+    <h2 class="mb-4 text-center">数据采集与控制界面</h2>
+
+    <!-- 📷 视频模块 -->
+    <div class="card mb-4 shadow-sm border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">📷 多摄像头视频流界面</h5>
+        </div>
+        <div class="card-body">
+
+            <div class="row text-center mb-3">
+                <div class="col-md-4">
+                    <h6>Left Wrist</h6>
+                    <img id="cam-left-wrist" src="" class="img-fluid border rounded video-box" />
+                </div>
+                <div class="col-md-4">
+                    <h6>Top</h6>
+                    <img id="cam-top" src="" class="img-fluid border rounded video-box" />
+                </div>
+                <div class="col-md-4">
+                    <h6>Right Wrist</h6>
+                    <img id="cam-right-wrist" src="" class="img-fluid border rounded video-box" />
+                </div>
+            </div>
+
+            <!-- 视频控制按钮 -->
+            <div class="btn-toolbar justify-content-center" role="toolbar">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-success" onclick="startCamera()">🎥 Start Camera</button>
+                    <button type="button" class="btn btn-secondary" onclick="stopCamera()">🛑 Stop Camera</button>
+                </div>
+                <div class="btn-group ms-2">
+                    <button type="button" class="btn btn-primary" onclick="startTask()">▶️ Start Task</button>
+                    <button type="button" class="btn btn-danger" onclick="stopTask()">⏹ Stop Task</button>
+                </div>
+            </div>
+
+            <!-- 输入框 -->
+            <div class="mt-4">
+                <label for="inputBox" class="form-label">📥 设置index</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="inputBox" placeholder="0，1...">
+                    <button type="button" class="btn btn-outline-success" onclick="alert('启动摄像头')">Set Index</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 🤖 夹爪模块 -->
+    <div class="card shadow-sm border-success">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">🤖 夹爪控制区域</h5>
+        </div>
+        <div class="card-body">
+
+            <!-- 串口配置 -->
+            <div class="row align-items-end mb-4">
+                <div class="col-md-3">
+                    <label for="serialSelect" class="form-label">串口选择</label>
+                    <select id="serialSelect" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary w-100" onclick="refreshSerialPorts()">🔄 刷新串口</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-success w-100" onclick="openSerialPort()">🔌 打开串口</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-warning w-100" onclick="reconnectSerial()">♻️ 重连串口</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-warning w-100" onclick="startGripperThread()">开启线程</button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-warning w-100" onclick="stopGripperThread()">停止线程</button>
+                </div>
+            </div>
+
+            <!-- 滑动条 -->
+            <div class="mb-3">
+                <label for="gripper1Slider" class="form-label">夹爪 1 控制</label>
+                <input type="range" class="form-range" min="0" max="100" step="1" value="0"id="gripper1Slider"
+                    oninput="updateGripper(1)">
+            </div>
+
+            <div class="mb-3">
+                <label for="gripper2Slider" class="form-label">夹爪 2 控制</label>
+                <input type="range" class="form-range" min="0" max="100" step="1" value="0" id="gripper2Slider"
+                    oninput="updateGripper(2)">
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+<script src="static/camera.js"></script>
+<script src="static/omnipicker.js"></script>
+
+
+</html>
