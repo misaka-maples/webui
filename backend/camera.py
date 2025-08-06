@@ -3,7 +3,7 @@ import threading
 import time
 import numpy as np
 from backend.camera_hot_plug import CAMERA_HOT_PLUG
-color_width, color_height = 640,480  # 设定默认分辨率
+global_color_width, global_color_height = 640,480  # 设定默认分辨率
 
 class MultiCameraStreamer:
     def __init__(self):
@@ -49,7 +49,7 @@ class MultiCameraStreamer:
                     color_image_dict[camera_sn].size != 0
                 ):
                     frame = np.array(color_image_dict[camera_sn], dtype=np.uint8)
-                    frame = cv2.resize(frame, (color_width, color_height))
+                    frame = cv2.resize(frame, (global_color_width, global_color_height))
                     self.message = "相机图像获取成功"
                 if frame is None or frame.size == 0:
                     frame = self.generate_random_color_frame()  # <--- 修改处

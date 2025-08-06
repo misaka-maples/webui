@@ -68,7 +68,7 @@ class TaskManager(threading.Thread):
         radius_qpos_robot_num_2 = [math.radians(j) for j in angle_qpos_robot_num_2]
             
         if self.gpcontrol.gpstate:
-            print(self.gpcontrol.gpstate)
+            # print(self.gpcontrol.gpstate)
             gpstate, gppos, gpforce = map(lambda x: str(x) if not isinstance(x, str) else x, self.gpcontrol.gpstate[0])
             radius_qpos_robot_num_1.extend([int(gppos, 16), int(gpforce, 16)])
             gpstate, gppos, gpforce = map(lambda x: str(x) if not isinstance(x, str) else x, self.gpcontrol.gpstate[1])
