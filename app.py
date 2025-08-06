@@ -19,6 +19,14 @@ def video_feed(camera_name):
         if not camera_running:
             return jsonify({"error": "Camera is not running"}), 400
         return Response(camera.generate_mjpeg(camera_name), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/submit_note', methods=['POST'])
+def submit_note():
+    data = request.get_json()
+    note = data.get('note', '')
+    taskmanager.note = note  # 保存备注到任务管理器
+    print(f"收到备注：{note}")
+
+    return jsonify({'message': '已收到备注'})
 
 @app.route('/action/<action>', methods=['POST'])
 def handle_action(action):
@@ -40,7 +48,7 @@ def handle_action(action):
             if not camera_running:
                 camera_running = True
         print("Starting camera...")
-        return jsonify({"message": "摄像头已启动"})
+        return jsonify({f"message": camera.message})
     elif action == "stop_camera":
         with camera.lock:
             camera_running = False

@@ -63,8 +63,15 @@
                 <label for="inputBox" class="form-label">📥 设置index</label>
                 <div class="input-group">
                     <input type="text" class="form-control" id="inputBox" placeholder="0，1...">
-                    <button type="button" class="btn btn-outline-success" onclick="alert('启动摄像头')">Set Index</button>
+                    <button type="button" class="btn btn-outline-success" onclick="alert('设置index成功')">Set Index</button>
                 </div>
+            </div>
+            <!-- 另一个输入框 -->
+            <div class="mt-4">
+                <label for="anotherInputBox" class="form-label">📝 添加采集数据备注</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="anotherInputBox" placeholder="例如轨迹特征，钣金件特征...">
+                    <button type="button" class="btn btn-outline-info" onclick="submitNote()">提交备注</button>                </div>
             </div>
 
         </div>

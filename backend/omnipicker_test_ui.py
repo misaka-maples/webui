@@ -192,7 +192,7 @@ class CANApp:
             if selected_value == "can0":
                 # 发送 can0 数据
                 can_data = self.calculate_can_data(self.slider.get())
-                self.send_can_message(self.ser, b'\x00\x00\x00\x08', can_data, 0x00)
+                self.send_can_message(self.ser, b'\x00\x00\x00\x01', can_data, 0x00)
             if selected_value == "can1":
                 # 发送 can1 数据
                 can_data = self.calculate_can_data(self.slider.get())

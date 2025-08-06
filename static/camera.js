@@ -43,6 +43,25 @@ if (img) {
         }
     });
 }
+function submitNote() {
+    const note = document.getElementById("anotherInputBox").value;
+
+    fetch('/submit_note', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ note: note })
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert('备注提交成功: ' + data.message);
+        })
+        .catch(error => {
+            alert('提交失败');
+            console.error('Error:', error);
+        });
+}
 
 function startTask() {postAction("start_task"); }
 function stopTask() {postAction("stop_task"); }

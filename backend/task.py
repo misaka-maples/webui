@@ -9,7 +9,7 @@ import numpy as np
 import threading
 from datetime import datetime
 camera_names = ['left_wrist','top','right_wrist']
-today_str = datetime.today().strftime("%m-%d")  # 输出例如 "07-28"
+today_str = datetime.today().strftime("%m-%d-%H")  # 输出例如 "07-28-14"
 
 class TaskManager(threading.Thread):
     def __init__(self,camera:MultiCameraStreamer):
@@ -24,6 +24,7 @@ class TaskManager(threading.Thread):
         self.images_dict = {camera_name: [] for camera_name in camera_names}  # 用于存储图像数据
         self.progress_value = 0  # 进度值
         self.index = 0  # 当前索引
+        self.note = ""  # 备注信息
     def run(self):
         """线程运行函数"""
         while self._running.is_set():
@@ -131,9 +132,9 @@ class TaskManager(threading.Thread):
             
             # 保存主文件
             if self.action_plan.traj_signal == 1:
-                self.generator_hdf5.save_hdf5(data_dict, f"./hdf5_file_exchange_{today_str}", self.index,arm_name='all')
+                self.generator_hdf5.save_hdf5(data_dict, f"./hdf5_exchange_{today_str}_{self.note}", self.index,arm_name='all')
             if self.action_plan.traj_signal == 2:
-                self.generator_hdf5.save_hdf5(data_dict, f"./hdf5_file_duikong_{today_str}", self.index,arm_name='left_arm')
+                self.generator_hdf5.save_hdf5(data_dict, f"./hdf5_duikong_{today_str}_{self.note}", self.index,arm_name='left_arm')
 
          
             # 清理原始数据

@@ -3,6 +3,7 @@ import threading
 import time
 import numpy as np
 from backend.camera_hot_plug import CAMERA_HOT_PLUG
+color_width, color_height = 640,480  # 设定默认分辨率
 
 class MultiCameraStreamer:
     def __init__(self):
@@ -21,7 +22,7 @@ class MultiCameraStreamer:
         self.lock = threading.Lock()
         self.running = True
         self.thread = threading.Thread(target=self._update_camera_frames, daemon=True)
-
+        self.message = "相机已启动"
     def generate_random_color_frame(self, width=640, height=480):
         """生成一张随机颜色图像"""
         return np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)
@@ -36,8 +37,7 @@ class MultiCameraStreamer:
             except Exception as e:
                 # 相机无法获取图像，生成随机图像代替
                 color_image_dict = {}
-                color_width, color_height = 640,480  # 设定默认分辨率
-                print(f"[WARN] 相机图像获取失败，使用随机图像替代: {e}")  # <--- 修改处
+                # print(f"[WARN] 相机图像获取失败，使用随机图像替代: {e}")  # <--- 修改处
 
             for cam_name in self.frame_buffer.keys():
                 camera_sn = self.camera_sn_list.get(cam_name)
@@ -49,10 +49,11 @@ class MultiCameraStreamer:
                     color_image_dict[camera_sn].size != 0
                 ):
                     frame = np.array(color_image_dict[camera_sn], dtype=np.uint8)
-
+                    frame = cv2.resize(frame, (color_width, color_height))
+                    self.message = "相机图像获取成功"
                 if frame is None or frame.size == 0:
                     frame = self.generate_random_color_frame()  # <--- 修改处
-
+                    self.message = "相机图像获取失败，使用随机图像替代"
                 with self.lock:
                     self.frame_buffer[cam_name] = frame
 
