@@ -27,6 +27,17 @@ def submit_note():
     print(f"收到备注：{note}")
 
     return jsonify({'message': '已收到备注'})
+@app.route('/set_index', methods=['POST'])
+def set_index():
+    data = request.get_json()
+    index = data.get('index', '')
+    taskmanager.index = index  # 保存index到任务管理器
+    taskmanager.index = int(index) if index.isdigit() else 0
+
+    print(f"收到index：{index}")
+
+    return jsonify({'message': '已收到index'})
+
 
 @app.route('/action/<action>', methods=['POST'])
 def handle_action(action):
@@ -37,7 +48,6 @@ def handle_action(action):
     if action == "start_task":
         print(f"Starting task with index: {user_input}")
         taskmanager.start_task()
-        taskmanager.index = int(user_input) if user_input.isdigit() else 0
         return jsonify({"message": "任务已开始"})
     elif action == "stop_task":
         print("Stopping task...")

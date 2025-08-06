@@ -1,13 +1,12 @@
 
 function postAction(action) {
-    const input = document.getElementById("inputBox").value;
 fetch(`/action/${action}`, {
     method: 'POST',
-headers: {'Content-Type': 'application/json' },
-body: JSON.stringify({input: input })
-    })
-        .then(response => response.json())
-        .then(data => {
+    headers: {'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+})
+    .then(response => response.json())
+    .then(data => {
     alert(data.message);
 
 if (action === 'start_camera') {
@@ -56,6 +55,25 @@ function submitNote() {
         .then(response => response.json())
         .then(data => {
             alert('备注提交成功: ' + data.message);
+        })
+        .catch(error => {
+            alert('提交失败');
+            console.error('Error:', error);
+        });
+}
+function setindex() {
+    const index = document.getElementById("inputBox").value;
+
+    fetch('/set_index', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ index: index })
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert('设置index成功: ' + data.message);
         })
         .catch(error => {
             alert('提交失败');
