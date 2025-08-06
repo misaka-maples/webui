@@ -33,7 +33,7 @@ class GripperCANController(threading.Thread):
             can_data = self.calculate_can_data(self.value)
             if self.bool:
                 _,self.gpstate[0] = self.set_gp_state(can_data, can_id, 0x000)
-                # _,self.gpstate[1] = self.set_gp_state(can_data, can_id, 0x001)
+                _,self.gpstate[1] = self.set_gp_state(can_data, can_id, 0x001)
                 self.bool = False
             canid,data = self.set_gp_state(can_data, can_id, self.gripper_id)
             if canid == '08':

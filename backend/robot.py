@@ -27,6 +27,7 @@ class ROBOT:
         time.sleep(2)
         self.Client.set_clear(1)
         self.Client.set_clear(2)
+        time.sleep(2)
         self.Client.set_open(2)
         self.Client.set_open(1)
     def stop(self,robot_num):

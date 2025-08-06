@@ -322,7 +322,7 @@ if __name__ == "__main__":
                 client.set_arm_position([-104.292, -14.1806, 50.2702, -8.32077, -96.7339, -40.532] ,"joint",1)
                 client.set_arm_position([93.7621, 3.73672, 50.7112, 10.4171, -32.9198, 3.26294] ,"joint",2)
             if message == "1,5":
-                client.set_arm_position([-129.127, -810.615, -288.951, 2.4716, -0.00248988, 2.28385],"pose",1)
+                client.set_arm_position([-127.205,-584.918,-238.196,2.8373,-0.121059,1.07089],"pose",1)
             if message == "set speed":
                 client.set_speed(1,30)
                 time.sleep(2)
