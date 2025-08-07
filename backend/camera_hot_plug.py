@@ -172,12 +172,15 @@ class CAMERA_HOT_PLUG:
     def rendering_frame(self, max_wait=5):
         color_image_dict: dict[str, np.ndarray] = {}
         depth_image_dict: dict[str, np.ndarray] = {}
-        
+        i = 0
         start_time = time.time()
         color_width, color_height = None, None
         # print(len(color_image_dict),self.curr_device_cnt)
         while len(color_image_dict) != self.curr_device_cnt:
             # print(len(color_image_dict))
+            i+=1
+            if i>5:
+                break
             if time.time() - start_time > max_wait:
                 print("⚠️ WARN: 渲染超时，部分相机未收到帧数据")
                 break

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, Response
 from backend.camera import MultiCameraStreamer
 from backend.serial_control import GripperCANController
 from backend.task import TaskManager 
+import sys
 GripperCANcontroller = GripperCANController()
 camera = MultiCameraStreamer()
 taskmanager = TaskManager(camera)
@@ -85,8 +86,7 @@ def reconnect_serial():
 
 @app.route('/gripper/start', methods=['POST'])
 def start_gripper():
-    try:
-        # print(GripperCANcontroller._running.is_set())
+    try:        
         GripperCANcontroller.start_thread()
         return jsonify({"message": "夹爪线程已启动"})
     except Exception as e:
@@ -95,8 +95,8 @@ def start_gripper():
 @app.route('/gripper/stop', methods=['POST'])
 def stop_gripper():
     try:
-        GripperCANcontroller.stop_thread()
-        GripperCANcontroller.close()
+        GripperCANcontroller.pause_thread()
+        # GripperCANcontroller.close()
         return jsonify({"message": "夹爪线程已停止"})
     except Exception as e:
         return jsonify({"message": f"停止夹爪线程失败: {str(e)}"}), 500
@@ -114,5 +114,19 @@ def control_gripper(gripper_id):
         return jsonify({"message": f"发送失败: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    camera.start()
-    app.run(debug=False)
+    # try:
+        camera.start()
+        GripperCANcontroller.start()
+        # GripperCANcontroller.start_thread()
+        app.run(debug=False)
+    # except KeyboardInterrupt:
+        
+    #     print("\n应用程序被中断 (Ctrl+C)，正在停止...")
+    #     # 停止摄像头和夹爪控制器等资源
+    #     camera.stop()
+    #     GripperCANcontroller.stop_thread() 
+    #     sys.exit(1)  # 退出程序
+    # except Exception as e :
+    #     print(f"启动应用失败: {e}")
+    #     camera.stop()
+        # sys.exit(1)  # 错误退出

@@ -15,9 +15,11 @@ class TaskManager(threading.Thread):
     def __init__(self,camera:MultiCameraStreamer):
         super().__init__()
         self._running = threading.Event()  # 正确的运行标志
+        self._stop_event = threading.Event()
         self.robot=ROBOT()
         self.camera_frame_buffer=camera.frame_buffer
         self.gpcontrol = GripperCANController()
+        self.gpcontrol.start()  # 启动夹爪控制线程
         self.generator_hdf5=GENERATOR_HDF5()
         self.action_plan=ACTION_PLAN(self.gpcontrol)
         self.qpos_list = []  # 用于存储qpos数据
@@ -25,20 +27,23 @@ class TaskManager(threading.Thread):
         self.progress_value = 0  # 进度值
         self.index = 0  # 当前索引
         self.note = ""  # 备注信息
+        self.task_is_start = False  # 任务是否开始
     def run(self):
         """线程运行函数"""
-        while self._running.is_set():
-            self._update_data()
-            time.sleep(0.1)
+        while not self._stop_event.is_set():  # 只要没有收到停止信号就执行
+            if self._running.is_set():  # 如果线程被标记为运行状态            
+                self._update_data()
+                time.sleep(0.1)
+            else:
+                time.sleep(0.1)
             
     def stop_task(self):
         """停止任务"""
-        
-        self._running.clear()
-        self.join()
-        self.gpcontrol.stop_thread()  # 停止夹爪控制线程
+        self._running.clear()  # 设置停止事件，退出线程循环
+        self.robot.close()
+        self.gpcontrol.pause_thread()  # 停止夹爪控制线程
         self.action_plan.stop()  # 停止动作计划线程
-        self.gpcontrol.close()  # 关闭串口连接
+        # self.task_is_start = False
 
     def start_task(self):
         """启动任务"""
@@ -48,13 +53,18 @@ class TaskManager(threading.Thread):
             if any('ACM' in dev for dev in port):
                 self.gpcontrol.open_serial(port[0])
                 self.gpcontrol.start_thread()
+                time.sleep(1)
+                # print(self.gpcontrol.gpstate)
             else:
                 print("port error")
-            if not self.is_alive():
+            
+            self._running.set()
+            if self.task_is_start is False:
                 
-                self._running.set()
                 super().start()
-                self.action_plan.start()  # 启动动作计划线程
+                
+                self.task_is_start = True  # 设置任务已开始
+            self.action_plan.start()  # 启动动作计划线程
         except Exception as e:
             
             print(f"启动任务失败: {e}")

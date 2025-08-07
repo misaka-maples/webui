@@ -20,47 +20,44 @@ class GripperCANController(threading.Thread):
         self.ser = None
         self.value_sources = {}
         self._running = threading.Event()  # 正确的运行标志
+        self._stop_event = threading.Event()
         self.gpstate = list([None, None])  # 初始化夹爪状态列表
-        self.interval = 0.01
+        self.interval = 0.05
         self.gripper_id = 0x000
         self.value = 0
         self.bool = True
-        
+        self.start_signal = False
+        print("init gripper")
     def run(self):
         can_id = b'\x00\x00\x00\x08'
-        while self._running.is_set():
-            # print("--")
-            can_data = self.calculate_can_data(self.value)
-            if self.bool:
-                _,self.gpstate[0] = self.set_gp_state(can_data, can_id, 0x000)
-                _,self.gpstate[1] = self.set_gp_state(can_data, can_id, 0x001)
-                self.bool = False
-            canid,data = self.set_gp_state(can_data, can_id, self.gripper_id)
-            if canid == '08':
-                self.gpstate[0] = data
-            elif canid == '88':
-                self.gpstate[1] = data
-            time.sleep(self.interval)
-
+        while not self._stop_event.is_set():  # 只要没有收到停止信号就执行
+            if self._running.is_set():  # 如果线程被标记为运行状态            # 
+                # print("--")
+                can_data = self.calculate_can_data(self.value)
+                if self.bool:
+                    _,self.gpstate[0] = self.set_gp_state(can_data, can_id, 0x000)
+                    _,self.gpstate[1] = self.set_gp_state(can_data, can_id, 0x001)
+                    self.bool = False
+                canid,data = self.set_gp_state(can_data, can_id, self.gripper_id)
+                if canid == '08':
+                    self.gpstate[0] = data
+                elif canid == '88':
+                    self.gpstate[1] = data
+                # print(self.gpstate)
+                time.sleep(self.interval)
+            else:
+                time.sleep(self.interval)
     def start_thread(self):
-        if not self.is_alive():
-            self._running.set()
-            # print("正在启动")
-            super().start()
-            print("控制线程已启动")
-            return True, "控制线程已启动"
-        else:
-            return False, "控制线程已在运行"
 
+        self._running.set()
+        print("控制线程已启动")
+        return True, "控制线程已启动"
+
+    def pause_thread(self):
+        self._running.clear()  # 设置停止事件，退出线程循环
+        return True, "控制线程已停止"
     def stop_thread(self):
-        if self.is_alive():
-            self._running.clear()
-            self.join()
-            print("控制线程已停止")
-            return True, "控制线程已停止"
-        else:
-            return False, "控制线程未运行"
-
+        self._stop_event.set()
     def set_value_func(self,channel,value):
         if channel == 1:
             self.gripper_id =0x000

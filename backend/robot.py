@@ -33,6 +33,10 @@ class ROBOT:
     def stop(self,robot_num):
         self.Client.set_stop(robot_num)
         self.Client.set_reset(robot_num)
+    def close(self):
+        """关闭TCP连接"""
+        self.Client.set_close(1)
+        self.Client.set_close(2)
     def load_json(self, file_path):
         """加载JSON文件"""
         with open(file_path, 'r') as file:

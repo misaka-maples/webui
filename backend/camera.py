@@ -21,8 +21,9 @@ class MultiCameraStreamer:
         }
         self.lock = threading.Lock()
         self.running = True
-        self.thread = threading.Thread(target=self._update_camera_frames, daemon=True)
+        self.thread = threading.Thread(target=self._update_camera_frames, daemon=False)
         self.message = "相机已启动"
+
     def generate_random_color_frame(self, width=640, height=480):
         """生成一张随机颜色图像"""
         return np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)

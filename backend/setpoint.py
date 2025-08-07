@@ -1,4 +1,5 @@
 from backend.robot import ROBOT
+import time
 class temp:
     def __init__(self):
         self.robot = ROBOT()
@@ -20,9 +21,11 @@ class temp:
         self.robot.enable_power()
 if __name__ == "__main__":
     temp_ = temp()
-    temp_.enable_power()
     temp_.get()
-    temp_.set(temp_.right_point[0],robot_num=2)
+    temp_.enable_power()
+    time.sleep(0.5)   
     temp_.set(temp_.left_point[0],robot_num=1)
+    temp_.set(temp_.right_point[0],robot_num=2)
+    
 
 
