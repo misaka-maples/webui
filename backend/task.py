@@ -33,6 +33,7 @@ class TaskManager(threading.Thread):
         while not self._stop_event.is_set():  # 只要没有收到停止信号就执行
             if self._running.is_set():  # 如果线程被标记为运行状态            
                 self._update_data()
+                print(f"数据更新中，当前images_dict长度: {len(self.images_dict['left_wrist'])}, 进度值: {self.progress_value}")
                 time.sleep(0.1)
             else:
                 time.sleep(0.1)
@@ -43,6 +44,10 @@ class TaskManager(threading.Thread):
         self.robot.close()
         self.gpcontrol.pause_thread()  # 停止夹爪控制线程
         self.action_plan.stop()  # 停止动作计划线程
+        self.images_dict.clear()  # 清理图像数据
+        self.qpos_list.clear()  # 清理qpos数据
+        self.progress_value = 0  # 重置进度值
+        
         # self.task_is_start = False
 
     def start_task(self):
