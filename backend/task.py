@@ -156,7 +156,6 @@ class TaskManager(threading.Thread):
             # 清理摄像头帧缓存
             # 更新索引和状态
             self.task_complete_step = 0
-            self.index += 1
 
         except Exception as e:
             print(f"Save data error: {e}")
