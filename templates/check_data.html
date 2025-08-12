@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <title>CheckData - HDF5 Viewer</title>
+    <style>
+       body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 16px;
+    background: #f0f2f5;
+    color: #333;
+}
+
+.row {
+    display: flex;
+    gap: 16px;
+}
+
+.col {
+    background: #fff;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+    display: flex;
+    flex-direction: column;
+}
+
+.left {
+    flex: 0 0 380px;
+}
+
+.right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+input[type=text] {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1rem;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.25s ease;
+}
+
+input[type=text]:focus {
+    border-color: #3f51b5;
+    outline: none;
+    box-shadow: 0 0 6px #3f51b5aa;
+}
+
+button {
+    padding: 10px 16px;
+    margin-top: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
+    background: #3f51b5;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:disabled {
+    background: #a1a4b2;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background: #2c3a9a;
+}
+
+ul.filelist {
+    list-style: none;
+    padding: 0;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fafafa;
+}
+
+ul.filelist li {
+    padding: 10px 14px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+ul.filelist li:hover {
+    background-color: #dce4ff;
+}
+
+ul.filelist li.selected {
+    background: #3f51b5;
+    color: white;
+    font-weight: 600;
+}
+
+.players {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.player {
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fafafa;
+    box-shadow: 0 1px 6px rgb(0 0 0 / 0.05);
+}
+
+canvas {
+    background: #000;
+    width: 100% !important;
+    height: 240px !important;
+    border-radius: 8px;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.progress {
+    flex: 1;
+    cursor: pointer;
+    height: 6px;
+    border-radius: 3px;
+    accent-color: #3f51b5;
+}
+
+.chart-wrapper {
+    height: 260px;
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.07);
+}
+
+table.meta {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+table.meta td {
+    padding: 8px 10px;
+    border: 1px solid #eee;
+}
+
+label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 6px;
+}
+
+    </style>
+
+    <!-- Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <h2>HDF5 CheckData Viewer</h2>
+
+    <div class="row">
+        <div class="col left">
+            <label>文件夹路径（本机路径）</label>
+            <input id="folder" type="text" placeholder="/home/wfx/data" value="" />
+            <button id="btnList">列出 HDF5 文件</button>
+
+            <h4>文件列表</h4>
+            <ul id="fileList" class="filelist"></ul>
+
+            <div style="margin-top:10px;">
+                <button id="btnLoad" disabled>加载选中文件</button>
+            </div>
+
+            <h4 style="margin-top:10px">文件信息</h4>
+            <div id="fileInfo"></div>
+        </div>
+
+        <div class="col right">
+            <div style="display:flex; gap:12px;">
+                <div style="flex:1">
+                    <h4>关节显示（action 和 qpos）</h4>
+                    <div class="chart-wrapper">
+                        <canvas id="chartJoints"></canvas>
+                    </div>
+                </div>
+                <!-- 删除数据集选择区域 -->
+            </div>
+        
+            <div>
+                <h4>视频播放器（三路并列）</h4>
+                <div class="players">
+                    <!-- 保持不变 -->
+                    <div class="player col" id="player0">
+                        <div><strong id="p0name">-</strong></div>
+                        <canvas id="cv0" width="320" height="180"></canvas>
+                        <div class="controls">
+                            <button class="play" data-idx="0">Play</button>
+                            <input class="progress" data-idx="0" type="range" min="0" max="0" value="0" />
+                            <div class="pos" data-idx="0">0 / 0</div>
+                        </div>
+                    </div>
+                    <div class="player col" id="player1">
+                        <div><strong id="p1name">-</strong></div>
+                        <canvas id="cv1" width="320" height="180"></canvas>
+                        <div class="controls">
+                            <button class="play" data-idx="1">Play</button>
+                            <input class="progress" data-idx="1" type="range" min="0" max="0" value="0" />
+                            <div class="pos" data-idx="1">0 / 0</div>
+                        </div>
+                    </div>
+                    <div class="player col" id="player2">
+                        <div><strong id="p2name">-</strong></div>
+                        <canvas id="cv2" width="320" height="180"></canvas>
+                        <div class="controls">
+                            <button class="play" data-idx="2">Play</button>
+                            <input class="progress" data-idx="2" type="range" min="0" max="0" value="0" />
+                            <div class="pos" data-idx="2">0 / 0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+<script src="/static/check_data.js"></script>
+</html>

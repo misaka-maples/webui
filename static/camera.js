@@ -85,3 +85,6 @@ function startTask() {postAction("start_task"); }
 function stopTask() {postAction("stop_task"); }
 function startCamera() {postAction("start_camera"); }
 function stopCamera() {postAction("stop_camera"); }
+function goto_check_data() {
+    window.location.href = 'http://127.0.0.1:5000/check_data/';
+}
