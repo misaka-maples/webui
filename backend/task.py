@@ -76,6 +76,8 @@ class TaskManager(threading.Thread):
             self.stop_task()
     def _update_data(self):
         """更新数据"""
+        print(f"exchange_task_over_signal:{self.action_plan.exchange_task_over_signal}\nsave_exchange_file:{self.action_plan.save_exchange_file}\nsave_over_exchnage:{self.action_plan.save_over_exchnage}")
+        print(f"duikong_task_over_signal:{self.action_plan.duikong_task_over_signal}\nsave_duikong_file:{self.action_plan.save_duikong_file}\nsave_duikong_over:{self.action_plan.save_duikong_over}")
         angle_qpos_robot_num_1=self.robot.get_state(model='joint',robot_num=1)
         angle_qpos_robot_num_2=self.robot.get_state(model='joint',robot_num=2)
 
@@ -85,6 +87,7 @@ class TaskManager(threading.Thread):
         if self.gpcontrol.gpstate:
             # print(self.gpcontrol.gpstate)
             gpstate, gppos, gpforce = map(lambda x: str(x) if not isinstance(x, str) else x, self.gpcontrol.gpstate[0])
+            
             radius_qpos_robot_num_1.extend([int(gppos, 16), int(gpforce, 16)])
             gpstate, gppos, gpforce = map(lambda x: str(x) if not isinstance(x, str) else x, self.gpcontrol.gpstate[1])
             radius_qpos_robot_num_2.extend([int(gppos, 16), int(gpforce, 16)])      
@@ -164,3 +167,7 @@ class TaskManager(threading.Thread):
 
         except Exception as e:
             print(f"Save data error: {e}")
+        finally :
+            if self.action_plan.traj_signal == 2:
+                print("任务结束")
+                self.stop_task()

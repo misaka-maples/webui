@@ -114,17 +114,12 @@ class GripperCANController(threading.Thread):
         
     def reconnect_serial_connection(self):
         try:
-            if self.ser and self.ser.is_open:
-                port = self.ser.port
-                self.ser.close()
-                self.ser = serial.Serial(port=port, baudrate=BAUD_RATE, timeout=1)
-                print({"message": f"串口 {port} 重连成功"})
-                return True, f"串口 {port} 重连成功"
-            else:
-                print({"message": "串口未打开，无法重连"}), 400
-            return False, "串口未打开，无法重连"
+            
+            port = self.ser.port
+            self.ser.close()
+            self.ser = serial.Serial(port=port, baudrate=BAUD_RATE, timeout=1)
+            return True, f"串口 {port} 重连成功"
         except Exception as e:
-            print({"message": f"重连失败: {str(e)}"}), 500
             return False, f"重连失败: {str(e)}"
 
     @staticmethod

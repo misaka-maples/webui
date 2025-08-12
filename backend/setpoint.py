@@ -5,7 +5,7 @@ class temp:
         self.robot = ROBOT()
         self.right_point = self.robot.load_json('backend/point.json')['change_points_right']
         self.left_point = self.robot.load_json('backend/point.json')['change_points_left']
-
+        self.origin_point_right = self.robot.load_json('backend/point.json')['origin_point_right']
     def set(self,value,robot_num):
         self.robot.set_state(action=value,model='pose',robot_num=robot_num)
     def get(self):
@@ -24,8 +24,10 @@ if __name__ == "__main__":
     temp_.get()
     temp_.enable_power()
     time.sleep(0.5)   
-    temp_.set(temp_.left_point[0],robot_num=1)
-    temp_.set(temp_.right_point[0],robot_num=2)
+    inx = 0
+    # temp_.set(temp_.origin_point_right[0],robot_num=2)
+    temp_.set(temp_.left_point[inx],robot_num=1)
+    temp_.set(temp_.right_point[inx],robot_num=2)
     
 
 

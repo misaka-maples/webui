@@ -22,6 +22,7 @@ class ACTION_PLAN(threading.Thread):
         self.Robot.Client.set_speed(2,30)
         self.change_points_right = self.Robot.load_json('backend/point.json')['change_points_right']
         self.change_points_left = self.Robot.load_json('backend/point.json')['change_points_left']
+        self.origin_point_right = self.Robot.load_json('backend/point.json')['origin_point_right'][0]
         self.exchange_task_over_signal = False
         self.save_over_exchnage = True
         self.save_exchange_file = False
@@ -84,7 +85,8 @@ class ACTION_PLAN(threading.Thread):
         if self.stop_signal:
                 return
         self.gpcontrol.set_value_func(2, 0)
-        self.traja_reverse_task_move(self.change_points_right[:3], robot_num=2)
+        self.traja_reverse_task_move(self.change_points_right[1:3], robot_num=2)
+        self.move(self.origin_point_right, robot_num=2)
         if self.stop_signal:
                 return
         self.traja_task_move(self.change_points_left[3:7], robot_num=1)

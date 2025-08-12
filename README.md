@@ -45,7 +45,7 @@ pip install flask
 
 如需串口、摄像头等功能，请根据实际硬件环境安装额外依赖，例如：
 
-pip install pyserial opencv-python&#x9;
+pip install pyserial opencv-python pillow hdf5;
 
 ## 🚀 启动方式
 
