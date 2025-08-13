@@ -4,7 +4,7 @@
         {
             "serial_number": "CP253530006L",
             "config": {
-                "mode": "SECONDARY",
+                "mode": "PRIMARY",
                 "depth_delay_us": 0,
                 "color_delay_us": 0,
                 "trigger_to_image_delay_us": 0,
@@ -31,7 +31,7 @@
         {
             "serial_number": "CP3294Y0002T",
             "config": {
-                "mode": "SECONDARY",
+                "mode": "PRIMARY",
                 "depth_delay_us": 0,
                 "color_delay_us": 0,
                 "trigger_to_image_delay_us": 0,

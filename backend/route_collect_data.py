@@ -1,13 +1,18 @@
-from flask import Flask, render_template, request, jsonify, Response,Blueprint
+from flask import render_template, request, jsonify, Response,Blueprint
 from backend.camera import MultiCameraStreamer
 from backend.serial_control import GripperCANController
 from backend.task import TaskManager 
-import sys
+import sys,atexit
 GripperCANcontroller = GripperCANController()
 camera = MultiCameraStreamer()
-taskmanager = TaskManager(camera)
+taskmanager = TaskManager(camera,GripperCANcontroller)
 camera_running = False
 main_bp = Blueprint('main', __name__)
+camera.start_thread()
+
+# 注册退出时清理相机
+atexit.register(lambda: camera.stop_thread() if camera else None)
+atexit.register(lambda: GripperCANcontroller.stop_thread() if GripperCANcontroller else None)
 
 @main_bp.route('/')
 def index():
@@ -16,10 +21,9 @@ def index():
 @main_bp.route('/video_feed/<camera_name>')
 def video_feed(camera_name):
     global camera_running
-    with camera.lock:
-        if not camera_running:
-            return jsonify({"error": "Camera is not running"}), 400
-        return Response(camera.generate_mjpeg(camera_name), mimetype='multipart/x-mixed-replace; boundary=frame')
+    if not camera_running:
+        return jsonify({"error": "Camera is not running"}), 400
+    return Response(camera.generate_mjpeg(camera_name), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @main_bp.route('/submit_note', methods=['POST'])
 def submit_note():
@@ -56,14 +60,12 @@ def handle_action(action):
         taskmanager.stop_task()
         return jsonify({"message": "任务已停止"})
     elif action == "start_camera":
-        with camera.lock:
-            if not camera_running:
-                camera_running = True
+        if not camera_running:
+            camera_running = True
         print("Starting camera...")
         return jsonify({f"message": camera.message})
     elif action == "stop_camera":
-        with camera.lock:
-            camera_running = False
+        camera_running = False
         print("Stopping camera...")
         return jsonify({"message": "摄像头已关闭"})
     else:
@@ -87,7 +89,8 @@ def reconnect_serial():
 
 @main_bp.route('/gripper/start', methods=['POST'])
 def start_gripper():
-    try:        
+    try: 
+        
         GripperCANcontroller.start_thread()
         return jsonify({"message": "夹爪线程已启动"})
     except Exception as e:
@@ -96,8 +99,7 @@ def start_gripper():
 @main_bp.route('/gripper/stop', methods=['POST'])
 def stop_gripper():
     try:
-        GripperCANcontroller.pause_thread()
-        # GripperCANcontroller.close()
+        GripperCANcontroller.stop_thread()
         return jsonify({"message": "夹爪线程已停止"})
     except Exception as e:
         return jsonify({"message": f"停止夹爪线程失败: {str(e)}"}), 500
@@ -114,9 +116,3 @@ def control_gripper(gripper_id):
     except Exception as e:
         return jsonify({"message": f"发送失败: {str(e)}"}), 500
 
-# if __name__ == '__main__':
-    # try:
-camera.start()
-GripperCANcontroller.start()
-        # GripperCANcontroller.start_thread()
-        # main_bp.run(debug=False)

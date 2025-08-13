@@ -8,6 +8,8 @@ global_color_width, global_color_height = 640,480  # 设定默认分辨率
 class MultiCameraStreamer:
     def __init__(self):
         self.camera = CAMERA_HOT_PLUG()
+        self._running = threading.Event()  # 正确的运行标志
+        self._thread = None
         print("Camera initialized")
         self.frame_buffer = {
             "left_wrist": None,
@@ -19,15 +21,12 @@ class MultiCameraStreamer:
             "left_wrist": 'CP253530006L',
             "right_wrist": 'CP3294Y0002T',
         }
-        self.lock = threading.Lock()
         self.running = True
-        self.thread = threading.Thread(target=self._update_camera_frames, daemon=False)
         self.message = "相机已启动"
 
     def generate_random_color_frame(self, width=640, height=480):
         """生成一张随机颜色图像"""
         return np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)
-
 
     def _update_camera_frames(self):
         """后台线程：采集图像帧并存入 frame_buffer"""
@@ -55,32 +54,33 @@ class MultiCameraStreamer:
                 if frame is None or frame.size == 0:
                     frame = self.generate_random_color_frame()  # <--- 修改处
                     self.message = "相机图像获取失败，使用随机图像替代"
-                with self.lock:
-                    self.frame_buffer[cam_name] = frame
+                self.frame_buffer[cam_name] = frame
 
             time.sleep(1 / 30)
 
-    def start(self):
-        """启动后台采集线程"""
-        if not self.thread.is_alive():
-            self.running = True
-            self.thread.start()
 
-    def stop(self):
-        """停止线程"""
-        self.running = False
-        self.thread.join()
+    def start_thread(self):
+        if self._thread is None or not self._thread.is_alive():
+            self._running.set()
+            self._thread = threading.Thread(target=self._update_camera_frames, daemon=True)
+            self._thread.start()
+        return True, "控制线程已启动"
 
+
+    def stop_thread(self):
+        """停止线程采集"""
+        self._running.clear()  # 通知线程退出
+        if self._thread is not None:
+            self._thread.join()  # 等待线程安全退出
+            self._thread = None
     def get_frame(self, camera_name):
         """获取某个摄像头的最新图像帧"""
-        with self.lock:
-            return self.frame_buffer.get(camera_name)
+        return self.frame_buffer.get(camera_name)
 
     def generate_mjpeg(self, camera_name):
         """生成 MJPEG 数据流"""
         while True:
-            with self.lock:
-                frame = self.frame_buffer.get(camera_name)
+            frame = self.frame_buffer.get(camera_name)
             if frame is None:
                 time.sleep(0.01)
                 continue

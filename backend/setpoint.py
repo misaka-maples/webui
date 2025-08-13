@@ -25,9 +25,9 @@ if __name__ == "__main__":
     temp_.enable_power()
     time.sleep(0.5)   
     inx = 0
-    # temp_.set(temp_.origin_point_right[0],robot_num=2)
+    temp_.set(temp_.origin_point_right[0],robot_num=2)
     temp_.set(temp_.left_point[inx],robot_num=1)
-    temp_.set(temp_.right_point[inx],robot_num=2)
+    # temp_.set(temp_.right_point[inx],robot_num=2)
     
 
 

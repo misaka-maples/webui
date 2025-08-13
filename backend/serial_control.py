@@ -12,58 +12,64 @@ SET_CAN0 = b'\x49\x3B\x42\x57\x00' + b'\x00' * 15 + b'\x45\x2E'
 SET_CAN1 = b'\x49\x3B\x42\x57\x01' + b'\x00' * 15 + b'\x45\x2E'
 START_CAN = b'\x49\x3B\x44\x57\x01\x00\x01\x01' + b'\x00' * 12 + b'\x45\x2E'
 
-class GripperCANController(threading.Thread):
+class GripperCANController():
     def __init__(self, baudrate=BAUD_RATE):
-        super().__init__()
         self.port = None
         self.baudrate = baudrate
         self.ser = None
         self.value_sources = {}
         self._running = threading.Event()  # 正确的运行标志
-        self._stop_event = threading.Event()
+        self._thread = None
         self.gpstate = list([None, None])  # 初始化夹爪状态列表
         self.interval = 0.05
         self.gripper_id = 0x000
         self.value = 0
         self.bool = True
         self.start_signal = False
-        print("init gripper")
     def run(self):
         can_id = b'\x00\x00\x00\x08'
-        while not self._stop_event.is_set():  # 只要没有收到停止信号就执行
-            if self._running.is_set():  # 如果线程被标记为运行状态            # 
-                # print("--")
-                can_data = self.calculate_can_data(self.value)
-                if self.bool:
-                    _,self.gpstate[0] = self.set_gp_state(can_data, can_id, 0x000)
-                    _,self.gpstate[1] = self.set_gp_state(can_data, can_id, 0x001)
-                    self.bool = False
-                canid,data = self.set_gp_state(can_data, can_id, self.gripper_id)
-                if canid == '08':
-                    self.gpstate[0] = data
-                elif canid == '88':
-                    self.gpstate[1] = data
-                # print(self.gpstate)
-                time.sleep(self.interval)
-            else:
-                time.sleep(self.interval)
-    def start_thread(self):
+        while self._running.is_set():  # 如果线程被标记为运行状态
+            can_data = self.calculate_can_data(self.value)
+            if self.bool:
+                _,self.gpstate[0] = self.set_gp_state(can_data, can_id, 0x000)
+                _,self.gpstate[1] = self.set_gp_state(can_data, can_id, 0x001)
+                self.bool = False
+            canid,data = self.set_gp_state(can_data, can_id, self.gripper_id)
+            if canid == '08':
+                self.gpstate[0] = data
+            elif canid == '88':
+                self.gpstate[1] = data
+            time.sleep(self.interval)
+        else:
+            time.sleep(self.interval)
 
-        self._running.set()
-        print("控制线程已启动")
+    def start_thread(self):
+        if self._thread is None or not self._thread.is_alive():
+            self._running.set()
+            self._thread = threading.Thread(target=self.run, daemon=True)
+            self._thread.start()
         return True, "控制线程已启动"
 
-    def pause_thread(self):
-        self._running.clear()  # 设置停止事件，退出线程循环
-        return True, "控制线程已停止"
+
     def stop_thread(self):
-        self._stop_event.set()
+        """停止线程采集"""
+        self._running.clear()  # 通知线程退出
+        if self._thread is not None:
+            self._thread.join()  # 等待线程安全退出
+            self._thread = None
+            self.close()
     def set_value_func(self,channel,value):
         if channel == 1:
             self.gripper_id =0x000
         elif channel == 2:
             self.gripper_id =0x001
         self.value = value
+    def connect_ACM_port(self):
+        port = self.get_serial_ports_list()
+        if any('ACM' in dev for dev in port):
+            self.open_serial(port[0])
+        else:
+            print("未找到ACM串口")
     def get_gpstate(self):
         _,gpdata = self.read_data(self.ser)
         if gpdata[:2] == '08':
@@ -217,3 +223,21 @@ class GripperCANController(threading.Thread):
         else:
             print("[ERROR] 串口未打开，无法读取数据")
         return None
+
+if __name__ == "__main__":
+    gpcontrol = GripperCANController()
+    gpcontrol.connect_ACM_port()
+    gpcontrol.start_thread()
+    time.sleep(1)
+    i = 0
+    while i < 20:
+        print(gpcontrol.gpstate)
+
+        time.sleep(1)
+        i += 1
+        if i == 10:
+            gpcontrol.stop_thread()
+
+        if i == 11:
+            gpcontrol.connect_ACM_port()
+            gpcontrol.start_thread()

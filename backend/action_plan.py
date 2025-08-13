@@ -2,12 +2,11 @@ import threading
 import time
 import random
 from backend.robot import ROBOT  # 假设 ROBOT 类在这个模块中
-# from backend.serial_control import GripperCANController
-class ACTION_PLAN(threading.Thread):
+from backend.serial_control import GripperCANController  
+class ACTION_PLAN():
     def __init__(self,gpcontrol):
-        super().__init__()
         self._running = threading.Event()  # 正确的运行标志
-        self._stop_event = threading.Event()
+        self._thread = None
         self.Robot = ROBOT()
         self.velocity = 15
         self.point = None
@@ -32,54 +31,50 @@ class ACTION_PLAN(threading.Thread):
         self.gpcontrol = gpcontrol  # GripperCANController 实例
         self.stop_signal = False
         self.start_signal = False
+        self.save = True
     def move(self, position, robot_num=1):
         if self.stop_signal:
             return
         self.Robot.set_state(position, 'pose', robot_num)
-    def start(self):
-        """启动后台采集线程"""
-        self._running.set()
-        self.stop_signal = False
-        print("动作计划线程已启动")
-        if self.start_signal is False:
-            super().start()
-            self.start_signal = True
 
-    def stop(self):
-        """停止线程"""
-        if self.is_alive():
-            self.stop_signal = True
-            self._running.clear()  # 设置停止事件，退出线程循环
+    def start_thread(self):
+        if self._thread is None or not self._thread.is_alive():
+            self._running.set()
+            self._thread = threading.Thread(target=self.run, daemon=True)
+            self._thread.start()
 
+
+    def stop_thread(self):
+        """停止线程采集"""
+        self._running.clear()  # 通知线程退出
+        if self._thread is not None:
+            self._thread.join()  # 等待线程安全退出
+            self._thread = None
+            self.close()
     def run(self):
-        while not self._stop_event.is_set():
-            if self._running.is_set():
-                if self.exchange_task_over_signal is False:
-                    self.exchange_task()
+        while self._running.is_set():
+            self.exchange_task()
+            while self.save:    
                 time.sleep(2)
-                if self.save_exchange_file:
-                    continue
-                self.duikong()
-                # time.sleep(100)
-                
-                self.exchange_task_over_signal = False
-                self.stop()
-            else:
-                time.sleep(0.1)
+            self.duikong()                
+            self.save = True
+            self.stop_thread()
+        else:
+            time.sleep(0.1)
     def exchange_task(self):
-        self.gpcontrol.set_value_func(1, 100)
+        self.gpcontrol.set_value_func(1, 80)
         time.sleep(2)
         self.gpcontrol.set_value_func(2, 0)
         
         self.traja_task_move(self.change_points_right, robot_num=2)
         if self.stop_signal:
-                return
+            return
         self.traja_task_move(self.change_points_left[:3], robot_num=1)
         if self.stop_signal:
                 return
         self.gpcontrol.set_value_func(1, 0)
         time.sleep(2)
-        self.gpcontrol.set_value_func(2, 100)
+        self.gpcontrol.set_value_func(2, 80)
         time.sleep(2)
         self.traja_reverse_task_move(self.change_points_right[3:], robot_num=2)
         if self.stop_signal:
@@ -93,22 +88,17 @@ class ACTION_PLAN(threading.Thread):
         if self.stop_signal:
                 return
         self.traj_signal = 1
-        self.exchange_task_over_signal = True
-        self.save_exchange_file = True
-        self.save_over_exchnage = False
     def duikong(self):
         self.traja_task_move(self.change_points_left[7:11], robot_num=1)
         if self.stop_signal:
                 return
-        self.gpcontrol.set_value_func(1, 100)
+        self.gpcontrol.set_value_func(1, 80)
         time.sleep(4)
         self.traja_task_move(self.change_points_left[11:], robot_num=1)
         if self.stop_signal:
                 return
         self.traj_signal = 2
-        self.duikong_task_over_signal = True
-        self.save_duikong_file = True
-        self.save_duikong_over = False
+        time.sleep(2)
     def traja_task_move(self, points, robot_num):
         for idx, point in enumerate(points):
             if self.stop_signal:
@@ -152,3 +142,18 @@ class ACTION_PLAN(threading.Thread):
 
     def set_loop_len(self, value):
         self.loop_len = value
+
+
+if __name__ == "__main__":
+    gp = GripperCANController()
+    gp.connect_ACM_port()
+    gp.start_thread()
+    action_plan = ACTION_PLAN(gpcontrol=gp)
+    action_plan.start_thread()
+    i = 0
+    while i<20:
+        print(i)
+        i += 1
+        time.sleep(1)
+        if i == 3:
+            action_plan.stop_thread()
