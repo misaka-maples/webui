@@ -38,17 +38,18 @@ class TaskManager():
             time.sleep(0.1)
     def stop_thread(self):
         self._running.clear()  # 通知线程退出
-        if self._thread is not None:
-            self._thread.join()  # 等待线程安全退出
-            self._thread = None
+        # 避免线程在自己里面 join 自己
+        if self._thread is not None and threading.current_thread() != self._thread:
+            self._thread.join()
+        self._thread = None
     def stop_task(self):
         """停止任务"""
         self.stop_thread()  # 设置停止事件，退出线程循环
         self.robot.close()
         self.action_plan.stop_thread()  # 停止动作计划线程
         self.gpcontrol.stop_thread()  # 停止夹爪控制线程
-        self.images_dict.clear()  # 清理图像数据
-        self.qpos_list.clear()  # 清理qpos数据
+        self.images_dict = {camera_name: [] for camera_name in camera_names}  # 用于存储图像数据
+        self.qpos_list = []  # 用于存储qpos数据
         self.progress_value = 0  # 重置进度值
         self.task_is_start = False
     def start_thread(self):
@@ -164,4 +165,6 @@ class TaskManager():
         finally :
             if self.action_plan.traj_signal == 2:
                 print("任务结束")
+                self.robot.close()
+                self._running.clear()  # 通知线程停止
                 self.stop_task()

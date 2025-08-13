@@ -45,12 +45,12 @@ class ACTION_PLAN():
 
 
     def stop_thread(self):
-        """停止线程采集"""
         self._running.clear()  # 通知线程退出
-        if self._thread is not None:
-            self._thread.join()  # 等待线程安全退出
-            self._thread = None
-            self.close()
+        # 避免线程在自己里面 join 自己
+        if self._thread is not None and threading.current_thread() != self._thread:
+            self._thread.join()
+        self._thread = None
+        self.Robot.close()
     def run(self):
         while self._running.is_set():
             self.exchange_task()
