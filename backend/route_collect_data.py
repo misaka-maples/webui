@@ -39,9 +39,7 @@ def set_index():
     index = data.get('index', '')
     taskmanager.index = index  # 保存index到任务管理器
     taskmanager.index = int(index) if index.isdigit() else 0
-
     print(f"收到index：{index}")
-
     return jsonify({'message': '已收到index'})
 
 
@@ -90,7 +88,6 @@ def reconnect_serial():
 @main_bp.route('/gripper/start', methods=['POST'])
 def start_gripper():
     try: 
-        
         GripperCANcontroller.start_thread()
         return jsonify({"message": "夹爪线程已启动"})
     except Exception as e:

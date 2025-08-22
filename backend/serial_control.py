@@ -154,7 +154,6 @@ class GripperCANController():
             ser.write(data)
             # print(f"[{time.time():.2f}] 发送: {data.hex().upper()}")
     def set_gp_state(self,value,can_id=1, channel=0x000):
-
         while 1:
             self.send_can_frame(self.ser, can_id, value, channel)
             data = self.read_data(self.ser) 

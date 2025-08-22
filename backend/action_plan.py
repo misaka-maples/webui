@@ -33,24 +33,27 @@ class ACTION_PLAN():
         self.start_signal = False
         self.save = True
     def move(self, position, robot_num=1):
+        print("运动进行中")
         if self.stop_signal:
             return
         self.Robot.set_state(position, 'pose', robot_num)
 
     def start_thread(self):
+        self.stop_signal = False
         if self._thread is None or not self._thread.is_alive():
             self._running.set()
             self._thread = threading.Thread(target=self.run, daemon=True)
             self._thread.start()
 
-
     def stop_thread(self):
         self._running.clear()  # 通知线程退出
         # 避免线程在自己里面 join 自己
+        print("关闭运动线程")
         if self._thread is not None and threading.current_thread() != self._thread:
             self._thread.join()
         self._thread = None
         self.Robot.close()
+        self.stop_signal = True
     def run(self):
         while self._running.is_set():
             self.exchange_task()
